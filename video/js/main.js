@@ -54,7 +54,7 @@ main();
 var test = [];
 var test = [[false, 1],[false, 2],[false,3],[false,4]];
 
-  var socket = io('https://localhost:8081');
+  var socket = io('https://52.11.122.165:8081');
   socket.on('connect', function(){
   trace('CONNCETED');
 
