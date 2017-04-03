@@ -49,7 +49,11 @@ var bytesPrev;
 var timestampPrev;
 var pc2;
 var streamNumber = 0 ;
+var windowsSession = [];
 main();
+var test = [];
+var test = [[false, 1],[false, 2],[false,3],[false,4]];
+
   var socket = io('https://localhost:8081');
   socket.on('connect', function(){
   trace('CONNCETED');
@@ -105,7 +109,6 @@ function getMedia() {
     getMediaButton.disabled = false;
   });
 }
-
 function gotStream(stream) {
   connectButton.disabled = false;
   console.log('GetUserMedia succeeded');
@@ -144,7 +147,6 @@ function getUserMediaConstraints() {
 
   return constraints;
 }
-
 function displayGetUserMediaConstraints() {
   var constraints = getUserMediaConstraints();
   console.log('getUserMedia constraints', constraints);
@@ -173,8 +175,12 @@ function createPeerConnection() {
       }
   };
 
-
-  localPeerConnection.createOffer().then(
+var offerOptions = {
+  offerToReceiveAudio: 1,
+  offerToReceiveVideo: 1,
+  voiceActivityDetection: false
+};
+  localPeerConnection.createOffer(offerOptions).then(
     function(desc) {
       console.log('localPeerConnection offering');
       localPeerConnection.setLocalDescription(desc);
@@ -227,18 +233,20 @@ function gotMessageFromServer(jsep, session, id ) {
         onSetSessionDescriptionError
       );
     }else{
-      streamNumber ++;
+     // streamNumber ++;
       newPeer(jsep, session, id, streamNumber)
   }
 }
 function newPeer(jsep, session, id, streamNumber){
       var peerConnection = new RTCPeerConnection(null);
-
+      var windows = selectWindows(test);
+      windowsSession[session] = windows;
+      console.log(session)
         peerConnection.onaddstream = function(e) {
         console.log('remotePeerConnection got stream');
-        console.log('remotePeerConnection got stream' + streamNumber);
+        console.log('remotePeerConnection got stream' + windows);
 
-        document.querySelector('div#remoteVideo'+ streamNumber +' video').srcObject = e.stream;
+        document.querySelector('div#remoteVideo'+ windows +' video').srcObject = e.stream;
       };
 
       peerConnection.setRemoteDescription(new RTCSessionDescription({"type":jsep.type, "sdp": jsep.sdp}));
@@ -289,13 +297,28 @@ socket.on('message', function (message) {
 
 socket.on('disconnect', function (message) {
   console.log("disconnect" + message.call_id)
-    if (message.call_id){
+  var number = windowsSession[message.call_id] 
+
+  console.log("aa" + number)
+
+  test[number-1][0] = false;
+  if (message.call_id){
 //      gotMessageFromServer(message.jsep, message.session_id, message.sender )
-        document.querySelector('div#remoteVideo'+ 1 +' video').srcObject = null;
+        document.querySelector('div#remoteVideo'+ number +' video').srcObject = null ;
     }
 });
 
-
+function selectWindows(test){
+  for (var i in test){
+    console.log(test[i])
+    if (!test[i][0])
+    {
+      test[i][0] = true;
+      return test[i][1];
+    }
+  }
+  return 0
+}
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
