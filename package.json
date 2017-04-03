@@ -1,0 +1,19 @@
+{
+  "name": "testserver",
+  "version": "1.0.0",
+  "description": "noxmo",
+  "main": "server.js",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "connect": "^2.3.0",
+    "fs": "^0.0.1-security",
+    "http": "^0.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
