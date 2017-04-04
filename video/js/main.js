@@ -271,7 +271,8 @@ if (type === "offer"){
               "callback_url": "http://localhost", 
               "sync":true,
               "call_id": getRandomInt(10,555555).toString(),
-              "plugin": 'echo',
+              "plugin": "echo",
+              "janus" : "true"
           }));
 }else{
   socket.emit('message', JSON.stringify({ 
@@ -279,8 +280,9 @@ if (type === "offer"){
               "callback_url": "http://localhost", 
               "sync":true,
               "call_id": getRandomInt(10,555555).toString(),
-              "plugin": 'echo',
-              "id" : source 
+              "plugin": "echo",
+              "id" : source,
+              "janus" : true
           }));
 
   }
