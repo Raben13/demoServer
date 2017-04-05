@@ -23,9 +23,6 @@ var maxHeightInput = document.querySelector('div#maxHeight input');
 var minFramerateInput = document.querySelector('div#minFramerate input');
 var maxFramerateInput = document.querySelector('div#maxFramerate input');
 
-minWidthInput.onchange = maxWidthInput.onchange =
-    minHeightInput.onchange = maxHeightInput.onchange =
-    minFramerateInput.onchange = maxFramerateInput.onchange = displayRangeValue;
 
 var getUserMediaConstraintsDiv =
     document.querySelector('div#getUserMediaConstraints');
@@ -50,19 +47,19 @@ var timestampPrev;
 var pc2;
 var streamNumber = 0 ;
 var windowsSession = [];
+var peerConnectionA = [];
 main();
 var test = [];
 var test = [[false, 1],[false, 2],[false,3],[false,4]];
 
   var socket = io('https://52.11.122.165:8081');
   socket.on('connect', function(){
-  trace('CONNCETED');
+  trace('Succesfully CONNCETED to the client servers');
 
   });
   socket.on('event', function(data){});
   socket.on('disconnect', function(){});
 function main() {
-  displayGetUserMediaConstraints();
 }
 var peerConnectionConfig =
 {
@@ -117,42 +114,22 @@ function gotStream(stream) {
 }
 
 function getUserMediaConstraints() {
-  var constraints = {};
-  constraints.audio = true;
-  constraints.video = {};
-  if (minWidthInput.value !== '0') {
-    constraints.video.width = {};
-    constraints.video.width.min = minWidthInput.value;
+  var constraints = {
+    "audio": true,
+    "video": {
+        "width": {
+            "min": "300",
+            "max": "640"
+        },
+        "height": {
+            "min": "200",
+            "max": "480"
+        }
+    }
   }
-  if (maxWidthInput.value !== '0') {
-    constraints.video.width = constraints.video.width || {};
-    constraints.video.width.max = maxWidthInput.value;
-  }
-  if (minHeightInput.value !== '0') {
-    constraints.video.height = {};
-    constraints.video.height.min = minHeightInput.value;
-  }
-  if (maxHeightInput.value !== '0') {
-    constraints.video.height = constraints.video.height || {};
-    constraints.video.height.max = maxHeightInput.value;
-  }
-  if (minFramerateInput.value !== '0') {
-    constraints.video.frameRate = {};
-    constraints.video.frameRate.min = minFramerateInput.value;
-  }
-  if (maxFramerateInput.value !== '0') {
-    constraints.video.frameRate = constraints.video.frameRate || {};
-    constraints.video.frameRate.max = maxFramerateInput.value;
-  }
-
   return constraints;
 }
-function displayGetUserMediaConstraints() {
-  var constraints = getUserMediaConstraints();
-  console.log('getUserMedia constraints', constraints);
-  getUserMediaConstraintsDiv.textContent =
-      JSON.stringify(constraints, null, '    ');
-}
+
 
 function createPeerConnection() {
   connectButton.disabled = true;
@@ -233,22 +210,19 @@ function gotMessageFromServer(jsep, session, id ) {
         onSetSessionDescriptionError
       );
     }else{
-     // streamNumber ++;
       newPeer(jsep, session, id, streamNumber)
   }
 }
 function newPeer(jsep, session, id, streamNumber){
+      console.log('New peer incoming, create new RTC RTCPeerConnection');
       var peerConnection = new RTCPeerConnection(null);
       var windows = selectWindows(test);
       windowsSession[session] = windows;
-      console.log(session)
-        peerConnection.onaddstream = function(e) {
-        console.log('remotePeerConnection got stream');
-        console.log('remotePeerConnection got stream' + windows);
-
+      peerConnection.onaddstream = function(e) {
         document.querySelector('div#remoteVideo'+ windows +' video').srcObject = e.stream;
       };
-
+      peerConnectionA.push(peerConnection)
+      streamNumber ++;
       peerConnection.setRemoteDescription(new RTCSessionDescription({"type":jsep.type, "sdp": jsep.sdp}));
       peerConnection.onicecandidate = function(e) {
 
@@ -272,7 +246,7 @@ if (type === "offer"){
               "sync":true,
               "call_id": getRandomInt(10,555555).toString(),
               "plugin": "echo",
-              "janus" : "true"
+              "janus" : "true",
           }));
 }else{
   socket.emit('message', JSON.stringify({ 
@@ -282,7 +256,7 @@ if (type === "offer"){
               "call_id": getRandomInt(10,555555).toString(),
               "plugin": "echo",
               "id" : source,
-              "janus" : true
+              "janus" : true,
           }));
 
   }
@@ -291,8 +265,10 @@ if (type === "offer"){
 socket.on('message', function (message) {
 
     if (message.jsep){
-      console.log(message.jsep);
+      console.log("RECEIVED EVENT message from the media Bridge : " + JSON.stringify(message.jsep));
+      
       gotMessageFromServer(message.jsep, message.session_id, message.sender )
+
     }
 });
 
@@ -301,7 +277,6 @@ socket.on('disconnect', function (message) {
   console.log("disconnect" + message.call_id)
   var number = windowsSession[message.call_id] 
 
-  console.log("aa" + number)
 
   test[number-1][0] = false;
   if (message.call_id){
@@ -312,7 +287,6 @@ socket.on('disconnect', function (message) {
 
 function selectWindows(test){
   for (var i in test){
-    console.log(test[i])
     if (!test[i][0])
     {
       test[i][0] = true;
@@ -326,3 +300,4 @@ function getRandomInt(min, max) {
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min)) + min;
 }
+
