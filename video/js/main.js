@@ -265,7 +265,7 @@ if (type === "offer"){
 socket.on('message', function (message) {
 
     if (message.jsep){
-      console.log("RECEIVED EVENT message from the media Bridge : " + JSON.stringify(message.jsep));
+      console.log("RECEIVED EVENT message from the media Bridge : " + JSON.stringify(message));
       
       gotMessageFromServer(message.jsep, message.session_id, message.sender )
 

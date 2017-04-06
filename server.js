@@ -68,9 +68,12 @@ var port = server.address().port
 
 rest.post('*', function (req, res) {
     if (req.body){
+      // fix socket io bugs
       var msg2 = JSON.stringify(req.body).replace('\u2028', '\\u2028').replace('\u2029', '\\u2029')
+      
       var msg = JSON.parse(msg2)
-      console.warn(msg, msg.Body, client[msg.Call_id])
+      console.warn(msg.Body, client[msg.Call_id])
+      
       if (req.body.janus == "destroy"){
           io.to('video').emit('disconnect', req.body)
       }else{
