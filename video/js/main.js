@@ -25,7 +25,7 @@ var maxFramerateInput = document.querySelector('div#maxFramerate input');
 
 
 var getUserMediaConstraintsDiv =
-    document.querySelector('div#getUserMediaConstraints');
+  document.querySelector('div#getUserMediaConstraints');
 var bitrateDiv = document.querySelector('div#bitrate');
 var peerDiv = document.querySelector('div#peer');
 var senderStatsDiv = document.querySelector('div#senderStats');
@@ -45,30 +45,28 @@ var localStream;
 var bytesPrev;
 var timestampPrev;
 var pc2;
-var streamNumber = 0 ;
+var streamNumber = 0;
 var windowsSession = [];
 var peerConnectionA = [];
 main();
-var test = [];
-var test = [[false, 1],[false, 2],[false,3],[false,4]];
 
-  var socket = io('https://52.11.122.165:8081');
-  socket.on('connect', function(){
+//var socket = io('https://52.11.122.165:8081');
+
+var socket = io('https://localhost:8081');
+socket.on('connect', function() {
   trace('Succesfully CONNCETED to the client servers');
 
-  });
-  socket.on('event', function(data){});
-  socket.on('disconnect', function(){});
-function main() {
-}
-var peerConnectionConfig =
-{
-  'iceServers': [
-    {
-      'url': 'stun:stun.l.google.com:19302'
-    },
-  ]
+});
+socket.on('event', function(data) {});
+socket.on('disconnect', function() {});
+
+function main() {}
+var peerConnectionConfig = {
+  'iceServers': [{
+    'url': 'stun:stun.l.google.com:19302'
+  }, ]
 };
+
 function hangup() {
   trace('Ending call');
   localPeerConnection.close();
@@ -97,15 +95,16 @@ function getMedia() {
     }
   }
   navigator.mediaDevices.getUserMedia(getUserMediaConstraints())
-  .then(gotStream)
-  .catch(function(e) {
-    var message = 'getUserMedia error: ' + e.name + '\n' +
+    .then(gotStream)
+    .catch(function(e) {
+      var message = 'getUserMedia error: ' + e.name + '\n' +
         'PermissionDeniedError may mean invalid constraints.';
-    alert(message);
-    console.log(message);
-    getMediaButton.disabled = false;
-  });
+      alert(message);
+      console.log(message);
+      getMediaButton.disabled = false;
+    });
 }
+
 function gotStream(stream) {
   connectButton.disabled = false;
   console.log('GetUserMedia succeeded');
@@ -117,14 +116,14 @@ function getUserMediaConstraints() {
   var constraints = {
     "audio": true,
     "video": {
-        "width": {
-            "min": "300",
-            "max": "640"
-        },
-        "height": {
-            "min": "200",
-            "max": "480"
-        }
+      "width": {
+        "min": "300",
+        "max": "640"
+      },
+      "height": {
+        "min": "200",
+        "max": "480"
+      }
     }
   }
   return constraints;
@@ -146,22 +145,22 @@ function createPeerConnection() {
 
   localPeerConnection.onicecandidate = function(e) {
 
-      if(e.candidate == null) {
-        console.log(localPeerConnection.localDescription);
-        sendMediabridgeRequest(localPeerConnection.localDescription.sdp,"offer");
-      }
+    if (e.candidate == null) {
+      console.log(localPeerConnection.localDescription);
+      sendMediabridgeRequest(localPeerConnection.localDescription.sdp, "offer");
+    }
   };
 
-var offerOptions = {
-  offerToReceiveAudio: 1,
-  offerToReceiveVideo: 1,
-  voiceActivityDetection: false
-};
+  var offerOptions = {
+    offerToReceiveAudio: 1,
+    offerToReceiveVideo: 1,
+    voiceActivityDetection: false
+  };
   localPeerConnection.createOffer(offerOptions).then(
     function(desc) {
       console.log('localPeerConnection offering');
       localPeerConnection.setLocalDescription(desc);
-      })
+    })
 }
 
 function onAddIceCandidateSuccess() {
@@ -199,107 +198,115 @@ function displayRangeValue(e) {
   span.textContent = e.target.value;
   displayGetUserMediaConstraints();
 }
+
 function onSetSessionDescriptionError(error) {
   trace('Failed to set session description: ' + error.toString());
 }
-function gotMessageFromServer(jsep, session, id ) {
-  if (jsep.type == "answer"){
-    localPeerConnection.setRemoteDescription(new RTCSessionDescription({"type":jsep.type, "sdp": jsep.sdp})).then(
-        function() {
-        },
-        onSetSessionDescriptionError
-      );
-    }else{
-      newPeer(jsep, session, id, streamNumber)
+
+function gotMessageFromServer(jsep, session, id) {
+  if (jsep.type == "answer") {
+    localPeerConnection.setRemoteDescription(new RTCSessionDescription({
+      "type": jsep.type,
+      "sdp": jsep.sdp
+    })).then(
+      function() {},
+      onSetSessionDescriptionError
+    );
+  } else {
+    newPeer(jsep, session, id, streamNumber)
   }
 }
-function newPeer(jsep, session, id, streamNumber){
-      console.log('New peer incoming, create new RTC RTCPeerConnection');
-      var peerConnection = new RTCPeerConnection(null);
-      var windows = selectWindows(test);
-      windowsSession[session] = windows;
-      peerConnection.onaddstream = function(e) {
-        document.querySelector('div#remoteVideo'+ windows +' video').srcObject = e.stream;
-      };
-      peerConnectionA.push(peerConnection)
-      streamNumber ++;
-      peerConnection.setRemoteDescription(new RTCSessionDescription({"type":jsep.type, "sdp": jsep.sdp}));
-      peerConnection.onicecandidate = function(e) {
 
-        if(e.candidate == null) {
-            sendMediabridgeRequest(peerConnection.localDescription.sdp, "answer", session + "/" + id)  
-          }
-      };
-      peerConnection.createAnswer(function (sessionDescription) {
-        peerConnection.setLocalDescription(sessionDescription);
-      }, function(error) {
-        alert(error);
-      }, { 'mandatory': { } });
+function newPeer(jsep, session, id, streamNumber) {
+  console.log('New peer incoming, create new RTC RTCPeerConnection');
+  var peerConnection = new RTCPeerConnection(null);
+  var windows = selectWindows(test);
+  windowsSession[session] = windows;
+  peerConnection.onaddstream = function(e) {
+    document.querySelector('div#remoteVideo' + windows + ' video').srcObject = e.stream;
+  };
+  peerConnectionA.push(peerConnection)
+  peerConnection.setRemoteDescription(new RTCSessionDescription({
+    "type": jsep.type,
+    "sdp": jsep.sdp
+  }));
+  peerConnection.onicecandidate = function(e) {
+    if (e.candidate == null) {
+      sendMediabridgeRequest(peerConnection.localDescription.sdp, "answer", session + "/" + id)
+    }
+  };
+  peerConnection.createAnswer(function(sessionDescription) {
+    peerConnection.setLocalDescription(sessionDescription);
+  }, function(error) {
+    alert(error);
+  }, {
+    'mandatory': {}
+  });
 
 }
 
 function sendMediabridgeRequest(sdp, type, source) {
-if (type === "offer"){
-  socket.emit('message', JSON.stringify({ 
-              "api_key": "321312321131312",
-              "offer": sdp, 
-              "callback_url": "http://localhost", 
-              "sync":true,
-              "call_id": getRandomInt(10,555555).toString(),
-              "plugin": "echo",
-              "janus" : "true",
-          }));
-}else{
-  socket.emit('message', JSON.stringify({
-              "api_key": "321312321131312", 
-              "answer": sdp, 
-              "callback_url": "http://localhost", 
-              "sync":true,
-              "call_id": getRandomInt(10,555555).toString(),
-              "plugin": "echo",
-              "id" : source,
-              "janus" : true,
-          }));
+  if (type === "offer") {
+    socket.emit('message', JSON.stringify({
+      "api_key": "321312321131312",
+      "offer": sdp,
+      "MixerID": "random", // not used
+      "MaxLength": 123, // not used
+      "callback_url": "http://localhost", // can be used
+      "sync": true, // not used
+      "janus": true,
+      "call_id": getRandomInt(10, 555555).toString(),
+    }));
+  } else {
+    socket.emit('message', JSON.stringify({
+      "api_key": "321312321131312",
+      "answer": sdp,
+      "callback_url": "http://localhost",
+      "sync": true,
+      "call_id": getRandomInt(10, 555555).toString(),
+      "plugin": "echo",
+      "id": source,
+      "janus": true,
+    }));
 
   }
 }
 
-socket.on('message', function (message) {
+socket.on('message', function(message) {
 
-    if (message.jsep){
-      console.log("RECEIVED EVENT message from the media Bridge : " + JSON.stringify(gotMessageFromServer));
-      
-      gotMessageFromServer(message.jsep, message.session_id, message.sender )
+  if (message.jsep) {
+    console.log("RECEIVED EVENT message from the media Bridge : " + JSON.stringify(message.jsep));
 
-    }
+    gotMessageFromServer(message.jsep, message.session_id, message.sender)
+
+  }
 });
 
-
+// TO DO 
+/*
 socket.on('disconnect', function (message) {
   console.log("disconnect" + message.call_id)
   var number = windowsSession[message.call_id] 
-
-
   test[number-1][0] = false;
   if (message.call_id){
 //      gotMessageFromServer(message.jsep, message.session_id, message.sender )
         document.querySelector('div#remoteVideo'+ number +' video').srcObject = null ;
     }
 });
+*/
 
-function selectWindows(test){
-  for (var i in test){
-    if (!test[i][0])
-    {
+function selectWindows(test) {
+  for (var i in test) {
+    if (!test[i][0]) {
       test[i][0] = true;
       return test[i][1];
     }
   }
   return 0
 }
+
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min)) + min;
 }
-

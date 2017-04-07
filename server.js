@@ -15,9 +15,9 @@ fs.stat('certificate/server.key', function(err, stat) {
       }, app).listen(8081);
       var express  = require('express');  
       var soApp    = express();  
-       io     = require('socket.io')(server);  
+      io     = require('socket.io')(server);  
       var request = require('request');
-
+      console.log("Listen port 8081: OK")
 
       io.sockets.on('connection', function(socket) {  
           socket.on('message', function (message) {
@@ -31,8 +31,9 @@ fs.stat('certificate/server.key', function(err, stat) {
               url: msg.offer != undefined ? 'http://localhost:5230/api/webrtc/' : 'http://localhost:5230/api/webrtc/answer',
               body:    JSON.stringify(msg)
             }, function(error, response, body){
-
-               if (error) return;
+               if (error){ 
+                return
+               };
                socket.emit('message',body)
             });
              });
@@ -47,7 +48,6 @@ fs.stat('certificate/server.key', function(err, stat) {
     }
 });
 
-// websocket to the client.
 
 
 // Callback request
@@ -68,7 +68,7 @@ var port = server.address().port
 
 rest.post('*', function (req, res) {
     if (req.body){
-      // fix socket io bugs
+      // line just to fix fix socket io bug..
       var msg2 = JSON.stringify(req.body).replace('\u2028', '\\u2028').replace('\u2029', '\\u2029')
       
       var msg = JSON.parse(msg2)
