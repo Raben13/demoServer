@@ -241,6 +241,7 @@ function newPeer(jsep, session, id, streamNumber){
 function sendMediabridgeRequest(sdp, type, source) {
 if (type === "offer"){
   socket.emit('message', JSON.stringify({ 
+              "api_key": "321312321131312",
               "offer": sdp, 
               "callback_url": "http://localhost", 
               "sync":true,
@@ -249,7 +250,8 @@ if (type === "offer"){
               "janus" : "true",
           }));
 }else{
-  socket.emit('message', JSON.stringify({ 
+  socket.emit('message', JSON.stringify({
+              "api_key": "321312321131312", 
               "answer": sdp, 
               "callback_url": "http://localhost", 
               "sync":true,
@@ -265,7 +267,7 @@ if (type === "offer"){
 socket.on('message', function (message) {
 
     if (message.jsep){
-      console.log("RECEIVED EVENT message from the media Bridge : " + JSON.stringify(message));
+      console.log("RECEIVED EVENT message from the media Bridge : " + JSON.stringify(gotMessageFromServer));
       
       gotMessageFromServer(message.jsep, message.session_id, message.sender )
 
